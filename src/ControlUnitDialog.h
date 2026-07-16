@@ -81,6 +81,7 @@ private:
 	bool displaySystemDescriptionAndID(SSMprotocol *SSMPdev, CUinfo_abstract *abstractInfoWidget);
 	virtual bool displayExtendedCUinfo(SSMprotocol *SSMPdev, CUinfo_abstract *abstractInfoWidget, FSSM_ProgressDialog *initstatusmsgbox = NULL) = 0;
 	bool prepareContentWidget(Mode mode);
+	static QString logFilenamePrefix(CUtype type);
 	void setContentWidget(QString title, QWidget *contentwidget);
 	void deleteContentWidgets();
 	QWidget * contentWidget();

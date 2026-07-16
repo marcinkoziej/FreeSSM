@@ -83,6 +83,7 @@ public:
 	CUcontent_MBsSWs(MBSWsettings_dt options = MBSWsettings_dt(), QWidget *parent = nullptr);
 	~CUcontent_MBsSWs();
 	bool setup(SSMprotocol *SSMPdev);
+	void setLogFilenamePrefix(const QString& prefix);
 	bool setMBSWselection(const std::vector<MBSWmetadata_dt>& MBSWmetaList);
 	std::vector<MBSWmetadata_dt> getMBSWselection() const;
 	size_t numMBsSWsSelected();
@@ -105,6 +106,9 @@ private:
 	std::vector<MinMaxMBSWvalue_dt> _minmaxData;
 	std::vector<unsigned int> _tableRowPosIndexes; /* index of the row at which the MB/SW is displayed in the values-table-widget */
 	bool _MBSWreading;
+	QString _logFilenamePrefix;
+	QFile _logFile;
+	QTextStream _logStream;
 
 	void setupTimeModeUiElements();
 	bool validateMBSWselection(const std::vector<MBSWmetadata_dt>& MBSWmetaList);
@@ -114,6 +118,10 @@ private:
 	void updateTimeInfo(int refreshduration_ms);
 	void clearRefreshTime();
 	void labelStartStopButtonReadyForStart();
+	void startLogging();
+	void stopLogging();
+	void logValues(const std::vector<QString>& valueStrList);
+	static QString csvEscape(QString str);
 	void communicationError(QString addstr);
 	void moveRefreshTimeUiElements();
 	void resizeEvent(QResizeEvent *event);

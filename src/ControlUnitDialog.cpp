@@ -413,6 +413,7 @@ bool ControlUnitDialog::prepareContentWidget(Mode mode)
 	{
 		setContentSelectionButtonChecked(ContentSelection::MBsSWsMode, true);
 		_content_MBsSWs = new CUcontent_MBsSWs(_MBSWsettings);
+		_content_MBsSWs->setLogFilenamePrefix(logFilenamePrefix(controlUnitType()));
 		setContentWidget(tr("Measuring Blocks:"), _content_MBsSWs);
 		_content_MBsSWs->show();
 	}
@@ -433,6 +434,31 @@ bool ControlUnitDialog::prepareContentWidget(Mode mode)
 	else // BUG
 		return false;
 	return true;
+}
+
+
+QString ControlUnitDialog::logFilenamePrefix(CUtype type)
+{
+	switch (type)
+	{
+	case CUtype::Engine:
+		return "engine";
+	case CUtype::Transmission:
+		return "transmission";
+	case CUtype::CruiseControl:
+		return "cruisecontrol";
+	case CUtype::AirCon:
+		return "aircon";
+	case CUtype::FourWheelSteering:
+		return "fourwheelsteering";
+	case CUtype::ABS:
+		return "abs";
+	case CUtype::AirSuspension:
+		return "airsuspension";
+	case CUtype::PowerSteering:
+		return "powersteering";
+	}
+	return "controlunit";
 }
 
 

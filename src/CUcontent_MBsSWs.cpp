@@ -112,6 +112,7 @@ bool CUcontent_MBsSWs::setup(SSMprotocol *SSMPdev)
 	}
 	// Reset reading state:
 	_MBSWreading = false;
+	stopLogging();
 	// Reset MB/SW list:
 	_MBSWmetaList.clear();
 	_tableRowPosIndexes.clear();
@@ -383,6 +384,8 @@ bool CUcontent_MBsSWs::startMBSWreading()
 	startstopmbreading_pushButton->setIconSize( QSize(24,24) );
 	// Update state:
 	_MBSWreading = true;
+	// Start logging the polled values to a CSV file:
+	startLogging();
 	return true;
 
 err:
@@ -423,7 +426,96 @@ bool CUcontent_MBsSWs::stopMBSWreading()
 		mbswload_pushButton->setEnabled(true);
 	// Update state:
 	_MBSWreading = false;
+	// Stop logging:
+	stopLogging();
 	return true;
+}
+
+
+void CUcontent_MBsSWs::setLogFilenamePrefix(const QString& prefix)
+{
+	_logFilenamePrefix = prefix;
+}
+
+
+void CUcontent_MBsSWs::startLogging()
+{
+	stopLogging();
+	// Create the log directory (if necessary):
+	const QString logDirPath = QDir::homePath() + "/.freessm/logs";
+	if (!QDir().mkpath(logDirPath))
+	{
+		errorMsg(tr("Logging Error"), tr("Error: failed to create the log directory:\n") + logDirPath);
+		return;
+	}
+	// Open the log file:
+	const QString prefix = _logFilenamePrefix.isEmpty() ? "mbsw" : _logFilenamePrefix;
+	const QString timestamp = QDateTime::currentDateTime().toString("yyyy-MM-dd-hh:mm:ss");
+	_logFile.setFileName(logDirPath + "/" + prefix + "-" + timestamp + ".csv");
+	if (!_logFile.open(QIODevice::WriteOnly | QIODevice::Text))
+	{
+		errorMsg(tr("Logging Error"), tr("Error: failed to create the log file:\n") + _logFile.fileName());
+		return;
+	}
+	_logStream.setDevice(&_logFile);
+	// Write the header line (MB/SW titles in table display order):
+	const size_t count = _MBSWmetaList.size();
+	std::vector<QString> titles(count);
+	for (size_t k=0; k<count; k++)
+	{
+		const MBSWmetadata_dt& metadata = _MBSWmetaList.at(k);
+		QString title;
+		switch (metadata.blockType)
+		{
+		case BlockType::MB:
+			title = _supportedMBs.at(metadata.nativeIndex).title;
+			if (!_supportedMBs.at(metadata.nativeIndex).unit.isEmpty())
+				title += " [" + _supportedMBs.at(metadata.nativeIndex).unit + "]";
+			break;
+		case BlockType::SW:
+			title = _supportedSWs.at(metadata.nativeIndex).title;
+			break;
+		}
+		titles.at(_tableRowPosIndexes.at(k)) = title;
+	}
+	_logStream << "Time";
+	for (size_t k=0; k<count; k++)
+		_logStream << ',' << csvEscape(titles.at(k));
+	_logStream << '\n';
+	_logStream.flush();
+}
+
+
+void CUcontent_MBsSWs::stopLogging()
+{
+	if (!_logFile.isOpen())
+		return;
+	_logStream.flush();
+	_logStream.setDevice(NULL);
+	_logFile.close();
+}
+
+
+void CUcontent_MBsSWs::logValues(const std::vector<QString>& valueStrList)
+{
+	if (!_logFile.isOpen())
+		return;
+	_logStream << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz");
+	for (size_t k=0; k<valueStrList.size(); k++)
+		_logStream << ',' << csvEscape(valueStrList.at(k));
+	_logStream << '\n';
+	_logStream.flush(); // flush every row, so no data is lost if the application terminates unexpectedly
+}
+
+
+QString CUcontent_MBsSWs::csvEscape(QString str)
+{
+	if (str.contains(',') || str.contains('"') || str.contains('\n'))
+	{
+		str.replace("\"", "\"\"");
+		str = '"' + str + '"';
+	}
+	return str;
 }
 
 
@@ -709,6 +801,8 @@ void CUcontent_MBsSWs::processMBSWRawValues(const std::vector<unsigned int>& raw
 	}
 	// Display new values:
 	_valuesTableView->updateMBSWvalues(valueStrList, minValueStrList, maxValueStrList, unitStrList);
+	// Log values to the CSV file:
+	logValues(valueStrList);
 	// Output refresh duration:
 	updateTimeInfo(refreshduration_ms);
 }
