@@ -75,6 +75,10 @@ int main(int argc, char *argv[])
 	QStringList cmdline_args;
 	QStringList option_values;
 
+#if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
+	QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+	QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
+#endif
 	QApplication app(argc, argv);
 	// Get command line arguments and check if help message is requested
 	cmdline_args = QCoreApplication::arguments();
