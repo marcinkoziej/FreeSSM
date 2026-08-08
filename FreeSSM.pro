@@ -175,7 +175,7 @@ CONFIG(debug, debug|release): DEFINES += __FSSM_DEBUG__ __SERIALCOM_DEBUG__ __J2
 greaterThan(QT_MAJOR_VERSION, 4): DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x040000	# only needed for method QHeaderView::setResizeMode()
 
 # disable gcse-optimization (regressions with gcc-versions >= 4.2)
-QMAKE_CXXFLAGS += -fno-gcse          # disable gcse-optimization (regressions with gcc-versions >= 4.2)
+!macx:QMAKE_CXXFLAGS += -fno-gcse          # disable gcse-optimization (regressions with gcc-versions >= 4.2)
 # language standard; requires c++11: range-for loop, constexpr, auto, initializer list, lambda expression, std::array, ...; Qt6.2+ requires c++17
 greaterThan(QT_MAJOR_VERSION, 5):greaterThan(QT_MINOR_VERSION, 1) {
   QMAKE_CXXFLAGS += -std=c++17
@@ -258,7 +258,7 @@ win32:INSTALLS += dllstarget platformstarget
 
 
 # OS-specific options
-unix {
+linux {
        DEPENDPATH += src/linux
        INCLUDEPATH += src/linux
        HEADERS += src/linux/serialCOM.h \
@@ -268,6 +268,18 @@ unix {
                   src/linux/TimeM.cpp \
                   src/linux/J2534_API.cpp
        LIBS += -ldl -lrt
+}
+
+macx {
+       DEPENDPATH += src/mac
+       INCLUDEPATH += src/mac
+       HEADERS += src/mac/serialCOM.h \
+                  src/mac/TimeM.h \
+                  src/mac/J2534_API.h
+       SOURCES += src/mac/serialCOM.cpp \
+                  src/mac/TimeM.cpp \
+                  src/mac/J2534_API.cpp
+       LIBS += -ldl -framework IOKit
 }
 
 win32 {

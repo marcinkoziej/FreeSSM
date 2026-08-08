@@ -26,6 +26,8 @@
 	#include "windows\serialCOM.h"
 #elif defined __linux__
 	#include "linux/serialCOM.h"
+#elif defined __APPLE__
+	#include "mac/serialCOM.h"
 #else
 	#error "Operating system not supported !"
 #endif

@@ -27,6 +27,8 @@
 	#include "windows\J2534_API.h"
 #elif defined __linux__
 	#include "linux/J2534_API.h"
+#elif defined __APPLE__
+	#include "mac/J2534_API.h"
 #else
 	#error "Operating system not supported !"
 #endif
